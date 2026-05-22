@@ -17,74 +17,84 @@
   <img src="https://img.shields.io/badge/docker-compose-2496ED" alt="Docker">
 </p>
 
-SACA (Security Audit Compliance Agent) is a proposed next-generation solution for network security auditing.
-It combines packet-level evidence, policy-aware reasoning, and multi-agent analysis to produce defensible compliance findings from pcap data.
+**SACA** (Security Audit Compliance Agent) is a next-generation network security auditing platform that combines packet-level evidence, policy-aware reasoning, and multi-agent LLM analysis to produce defensible compliance findings from pcap data.
 
-## 30-Second Quick Start
+---
 
-```powershell
-cd C:\saca\saca13
-Copy-Item .env.example .env.docker
-# Add at least one cloud key in .env.docker (OPENAI_API_KEY or DEEPSEEK_API_KEY or OPENROUTER_API_KEY)
+## Quick Start (Docker)
+
+```bash
+cp .env.example .env.docker
+# Add at least one cloud provider key in .env.docker:
+#   OPENAI_API_KEY, DEEPSEEK_API_KEY, or OPENROUTER_API_KEY
 docker compose --env-file .env.docker up --build
 ```
 
 Open:
 
-- Frontend: http://localhost:5173
-- Backend health: http://localhost:3001/api/health
+- **Frontend:** http://localhost:5173
+- **Backend health:** http://localhost:3001/api/health
 
-Why cloud keys: without them, only Ollama is marked configured.
+> **Note:** Without cloud API keys, only Ollama will be available as an LLM provider.
+
+---
 
 ## Executive Summary
 
-Modern network teams still rely heavily on manual Wireshark triage, ad hoc scripts, and fragmented reporting.
-SACA addresses this by providing a single workflow where analysts can:
+Modern network security teams still rely heavily on manual Wireshark triage, ad hoc scripts, and fragmented reporting workflows. SACA addresses this by providing a unified pipeline where analysts can:
 
-- Upload a capture and policy document.
-- Run an agentic analysis pipeline.
-- Receive evidence-backed violated, compliant, and suspicious findings.
-- Interactively investigate and validate findings through tool-assisted chat.
+- Upload a packet capture and a security policy document.
+- Run an automated multi-agent analysis pipeline.
+- Receive evidence-backed findings classified as **violated**, **compliant**, or **suspicious**.
+- Interactively investigate and validate findings through a tool-assisted chat interface.
 
-The design goal is practical audit acceleration, not black-box summarization.
+The design goal is **practical audit acceleration** — not black-box summarization, but transparent, evidence-grounded results.
+
+---
 
 ## Positioning
 
-SACA is inspired by strong agentic traffic-analysis patterns demonstrated in systems like NetTrace Agentix, while focusing on compliance judgment and policy-to-evidence mapping as first-class outcomes.
+SACA is inspired by strong agentic traffic-analysis patterns while focusing on **compliance judgment** and **policy-to-evidence mapping** as first-class outcomes.
 
-Where SACA is differentiated:
+Key differentiators:
 
-- Policy-agnostic compliance evaluation from uploaded policy text.
-- Dedicated compliance judge stage after network analysis.
-- Findings structure designed for audit defensibility and traceability.
+- **Policy-agnostic** compliance evaluation from uploaded policy text (PDF, DOCX, JSON, YAML, TXT).
+- Dedicated **ComplianceJudge** stage after network analysis.
+- Findings structure designed for **audit defensibility** and **traceability**.
 - Built-in detection coverage for common enterprise and IoT attack patterns.
+
+---
 
 ## Core Capabilities
 
-- Multi-agent pipeline: PolicyAgent, NetworkAgent, ComplianceJudge.
-- Evidence-driven chat tool loop with tshark-backed retrieval.
-- Detection coverage includes:
+- **Multi-agent pipeline:** PolicyAgent, NetworkAgent, ComplianceJudge.
+- **Evidence-driven chat** with a tool loop backed by `tshark` retrieval.
+- **Detection coverage** includes:
   - DNS hijacking and spoofing.
   - DNS tunneling heuristics.
   - Session hijacking (token reuse across source IPs).
   - OS fingerprinting (SYN option signature diversity).
   - ARP spoofing, brute force, SYN scan, Mirai-like behavior.
-- UI triage support with DNS-first findings sorting.
-- Local-first deployment model for controlled security environments.
+- **UI triage support** with DNS-first findings sorting.
+- **Local-first deployment** for controlled security environments.
+
+---
 
 ## Architecture Overview
 
-1. Policy parsing and normalization.
-2. Network traffic analysis and anomaly extraction.
-3. Compliance judgment against policy clauses.
-4. Findings persistence and analyst review.
+1. **Policy parsing and normalization** — extract structured rules from uploaded policy documents.
+2. **Network traffic analysis** — run `tshark`-based anomaly detection on pcap data.
+3. **Compliance judgment** — cross-reference policy rules against detected anomalies.
+4. **Findings persistence and analyst review** — store results and enable interactive investigation.
 
-High-level components:
+### High-Level Components
 
-- Backend: Express + TypeScript agent orchestration and APIs.
-- Frontend: React + Vite analyst workspace.
-- Packet engine: tshark/Wireshark CLI integration.
-- Optional LLM providers: OpenAI, DeepSeek, OpenRouter, Ollama.
+| Layer | Technology |
+|-------|-----------|
+| Backend | Express.js + TypeScript agent orchestration |
+| Frontend | React + Vite analyst workspace |
+| Packet engine | tshark / Wireshark CLI |
+| LLM providers | OpenAI, DeepSeek, OpenRouter, Ollama |
 
 ```mermaid
 flowchart LR
@@ -99,135 +109,165 @@ flowchart LR
   API --> TS[Tshark Engine]
 ```
 
+---
+
 ## Repository Layout
 
-- `backend/` API, agents, and services.
-- `frontend/` web application.
-- `pcap/` dataset mapping and capture assets.
-- `plans/` architecture and design notes.
-- `policy/` sample policy artifacts.
-- `scripts/` local start, stop, reset, and utility scripts.
+```
+├── backend/          API, agents, and services (Express + TypeScript)
+├── frontend/         Web application (React + Vite)
+├── policy/           Sample policy artifacts for testing
+├── scripts/          Start, stop, reset, and utility scripts
+├── media/            Screenshots and demo assets
+├── docker-compose.yml
+└── package.json      Root monorepo scripts
+```
+
+---
 
 ## Prerequisites
 
-- Node.js 20+
-- npm 10+
-- tshark (Wireshark CLI)
+- **Node.js** 20+
+- **npm** 10+
+- **tshark** (Wireshark CLI) — available on PATH or configured via `TSHARK_PATH` environment variable
 
-Windows default path:
+---
 
-- `C:\Program Files\Wireshark\tshark.exe`
+## Local Development
 
-If tshark is not on PATH, set `TSHARK_PATH` in local backend environment.
+### Install Dependencies
 
-## Local Development (Windows)
-
-Install dependencies:
-
-```powershell
+```bash
 npm install
-cd backend; npm install
-cd ../frontend; npm install
+cd backend && npm install
+cd ../frontend && npm install
 cd ..
 ```
 
-Run application:
+### Run the Application
 
-```powershell
-npm run start
+```bash
+npm run start:all
 ```
 
-Stop application:
+This starts both the backend (port 3001) and frontend (port 5173) concurrently.
 
-```powershell
+### Stop the Application
+
+```bash
 npm run stop
 ```
 
-Endpoints:
+### Endpoints
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3001
-- Health: http://localhost:3001/api/health
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:3001 |
+| Health Check | http://localhost:3001/api/health |
 
-## Docker Demo (Recommended for Sharing)
+---
 
-SACA can run without GPU by using cloud providers (OpenAI, DeepSeek, OpenRouter).
+## Docker Deployment (Recommended for Demos)
 
-1. Create a local Docker env file from template:
+SACA can run without a GPU by using cloud LLM providers (OpenAI, DeepSeek, OpenRouter).
 
-```powershell
-Copy-Item .env.example .env.docker
-notepad .env.docker
+1. Create a Docker environment file:
+
+```bash
+cp .env.example .env.docker
 ```
 
-2. Add only the provider keys you plan to use.
+2. Add the provider API keys you plan to use.
 
-3. Start containers:
+3. Build and start containers:
 
-```powershell
+```bash
 docker compose --env-file .env.docker up --build
 ```
 
 4. Stop containers:
 
-```powershell
+```bash
 docker compose down
 ```
 
-If cloud API keys are not supplied, only Ollama appears as configured.
+> **Note:** If no cloud API keys are supplied, only Ollama will be available.
 
-## Security and Secret Management
+---
 
-SACA includes guardrails to reduce accidental secret commits:
+## Security & Secret Management
 
-- `.gitignore` blocks `.env`, `.env.local`, `.env.docker`, and common key/cert files.
-- Pre-commit secret scanner blocks staged sensitive filenames and key-like token patterns.
+SACA includes built-in guardrails to prevent accidental secret exposure:
 
-Enable hooks after repository initialization:
+- **`.gitignore`** blocks `.env`, `.env.local`, `.env.docker`, and common key/certificate files.
+- **Pre-commit secret scanner** blocks staged files matching sensitive patterns (API keys, tokens, private keys).
 
-```powershell
+### Enable Git Hooks
+
+```bash
 npm run security:install-hooks
 ```
 
-Run manual staged scan:
+### Run Manual Staged Scan
 
-```powershell
+```bash
 npm run security:scan-staged
 ```
 
-Recommended local secret files:
+### Recommended Local Secret Files
 
-- `backend/.env.local` for backend runtime keys.
-- `.env.docker` for compose-based demos.
+| File | Purpose |
+|------|---------|
+| `backend/.env.local` | Backend runtime API keys |
+| `.env.docker` | Docker Compose demo keys |
 
-Tracked templates:
+### Tracked Templates
 
 - `backend/.env.example`
 - `.env.example`
 
-## Validation and Faithfulness (GT-01..GT-13 + RAGAS)
+---
 
-SACA v13 uses GT-01 through GT-13 as a practical benchmark range to measure detection quality and explanation grounding.
+## Validation & Faithfulness
 
-Evaluation mechanism:
+SACA v13 uses the **GT-01 through GT-13** benchmark scenarios to measure detection quality and explanation grounding.
 
-- Ground-truth anchor: known attack behavior from GT-01..GT-13 scenarios.
-- SACA output under test: findings, evidence packet numbers, reasoning text, and policy linkage.
-- RAGAS-style faithfulness focus: verify that model claims are supported by retrieved packet evidence and policy clauses, not hallucinated summaries.
+### Evaluation Mechanism
 
-Operational interpretation for this project:
+- **Ground-truth anchor:** Known attack behavior from GT-01..GT-13 scenarios.
+- **Output under test:** Findings, evidence packet numbers, reasoning text, and policy linkage.
+- **RAGAS-style faithfulness focus:** Verify that model claims are supported by retrieved packet evidence and policy clauses — not hallucinated summaries.
 
-- High faithfulness: finding reasoning is directly traceable to packet-level evidence and mapped policy text.
-- Low faithfulness: reasoning includes unsupported claims, weak evidence linkage, or policy mismatch.
+### Interpretation
 
-Current validation emphasis in this repository includes improvements proven on:
+| Faithfulness | Meaning |
+|-------------|---------|
+| **High** | Finding reasoning is directly traceable to packet-level evidence and mapped policy text. |
+| **Low** | Reasoning includes unsupported claims, weak evidence linkage, or policy mismatch. |
 
-- GT-07 class behavior: DNS hijacking/spoofing detection quality.
-- GT-10 class behavior: OS fingerprinting signal surfacing.
-- GT-13 class behavior: session hijacking/token reuse visibility.
+### Current Validation Emphasis
 
-This GT + RAGAS-faithfulness workflow is used as a continuous mechanism to measure whether SACA remains evidence-grounded as capabilities evolve.
+- **GT-07** — DNS hijacking / spoofing detection quality.
+- **GT-10** — OS fingerprinting signal surfacing.
+- **GT-13** — Session hijacking / token reuse visibility.
+
+This GT + RAGAS-faithfulness workflow ensures SACA remains evidence-grounded as capabilities evolve.
+
+---
 
 ## Status
 
-This project is an actively evolving proposal and implementation track for practical, explainable network security auditing.
+This project is an actively evolving implementation of a practical, explainable network security auditing platform.
+
+---
+
+## Contributing
+
+Contributions are welcome! Whether you're fixing bugs, improving detection coverage, adding new LLM provider support, or enhancing documentation — feel free to open issues and submit pull requests.
+
+---
+
+<p align="center">
+  <strong>Made in the UK by OCB — 2026</strong>
+</p>
